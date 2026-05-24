@@ -89,14 +89,6 @@ export default function Booking() {
     }
     loadServices()
   }, [])
-  const [form, setForm] = useState({
-    name: '', phone: '', email: '',
-    service: SERVICES[0].id,
-    date: '', time: '',
-    people: 1, hours: 1,
-    message: '',
-    payment: 'cash',
-  })
 
   const [total, setTotal]       = useState(0)
   const [showBadge, setShowBadge] = useState(false)
