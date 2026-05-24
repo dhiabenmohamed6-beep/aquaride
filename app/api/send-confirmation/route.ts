@@ -9,15 +9,6 @@ const PAYMENT_LABELS: Record<string, string> = {
   edinar:   'E-Dinar',
 }
 
-// Gmail transporter — uses an App Password (not your real Gmail password)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
-
 function buildEmailHtml(data: {
   name: string
   email: string
@@ -190,7 +181,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // attach logo if it exists in /public
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      },
+    })
+
     const logoPath = path.join(process.cwd(), 'public', 'logo.png')
     const logoExists = fs.existsSync(logoPath)
 
@@ -202,7 +200,7 @@ export async function POST(req: NextRequest) {
       attachments: logoExists ? [{
         filename: 'logo.png',
         path: logoPath,
-        cid: 'aquaride-logo',   // referenced as cid:aquaride-logo in the HTML
+        cid: 'aquaride-logo',
       }] : [],
     })
 
