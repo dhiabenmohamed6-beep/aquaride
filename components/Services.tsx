@@ -41,7 +41,7 @@ export default function Services() {
               </div>
               <div className="p-7">
                 <h3 className="text-2xl font-black text-[#062B37] mb-3" style={{ fontFamily:'Georgia,serif' }}>{svc.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed mb-6">{svc.desc}</p>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6">{svc.description}</p>
                 <a href="#booking"
                   className="inline-flex items-center gap-2 bg-[#062B37] hover:bg-cyan-500 text-white font-bold px-6 py-3 rounded-full text-sm transition-all duration-300 hover:scale-105">
                   Book Experience <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>

@@ -369,7 +369,7 @@ function ServiceModal({ svc, onSave, onClose }: {
         <div className="flex flex-col gap-4">
           <input value={form.title} onChange={e=>f('title',e.target.value)} placeholder="Service title *"
             className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400" />
-          <textarea value={form.desc} onChange={e=>f('desc',e.target.value)} rows={2} placeholder="Description"
+          <textarea value={form.description} onChange={e=>f('description',e.target.value)} rows={2} placeholder="Description"
             className="border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400 resize-none" />
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -787,7 +787,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="p-5">
-                        <p className="text-slate-500 text-xs leading-relaxed mb-4 line-clamp-2">{svc.desc}</p>
+                        <p className="text-slate-500 text-xs leading-relaxed mb-4 line-clamp-2">{svc.description}</p>
                         <div className="flex items-center justify-between mb-4">
                           <div>
                             <p className="text-2xl font-black text-cyan-500">{svc.price}</p>
