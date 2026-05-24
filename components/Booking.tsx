@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { saveReservation, generateId } from '@/lib/reservations'
-import { getServices, DEFAULT_SERVICES } from '@/lib/services'
+import { generateId } from '@/lib/reservations'
 
-// ─── Service catalogue — loaded from localStorage (admin-managed) ─────────────
+// ─── Service catalogue — loaded from API ─────────────
 const TIME_SLOTS = [
   '08:00','09:00','10:00','11:00','12:00',
   '13:00','14:00','15:00','16:00','17:00','18:00',
@@ -17,7 +16,7 @@ const PAYMENT_METHODS = [
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-type ServiceEntry = { id: string; label: string; basePrice: number; perPerson: boolean; hourly: boolean }
+type ServiceEntry = { id: string; label: string; basePrice: number; perPerson: boolean; hourly: boolean; description: string }
 
 function calcPrice(serviceId: string, people: number, hours: number, services: ServiceEntry[]): number {
   const svc = services.find(s => s.id === serviceId)
@@ -70,11 +69,25 @@ function ConfirmationPopup({ name, onClose }: { name: string; onClose: () => voi
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Booking() {
-  const [SERVICES, setSERVICES] = useState(DEFAULT_SERVICES.map(s => ({ id: s.id, label: s.title, basePrice: s.basePrice, perPerson: s.perPerson, hourly: s.hourly })))
+  const [SERVICES, setSERVICES] = useState<ServiceEntry[]>([])
+  const [form, setForm] = useState({
+    name: '', phone: '', email: '',
+    service: '',
+    date: '', time: '',
+    people: 1, hours: 1,
+    message: '',
+    payment: 'cash',
+  })
 
   useEffect(() => {
-    const loaded = getServices().filter(s => s.visible)
-    if (loaded.length) setSERVICES(loaded.map(s => ({ id: s.id, label: s.title, basePrice: s.basePrice, perPerson: s.perPerson, hourly: s.hourly })))
+    async function loadServices() {
+      const res = await fetch('/api/services')
+      const data = await res.json()
+      const visible = data.filter((s: ServiceEntry) => s.visible)
+      setSERVICES(visible.map((s: ServiceEntry) => ({ id: s.id, label: s.title, basePrice: s.basePrice, perPerson: s.perPerson, hourly: s.hourly, description: s.description })))
+      if (visible.length > 0) setForm(f => ({ ...f, service: visible[0].id }))
+    }
+    loadServices()
   }, [])
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
@@ -121,25 +134,29 @@ export default function Booking() {
     const e2 = validate()
     if (Object.keys(e2).length) { setErrors(e2); return }
 
-    // persist to localStorage so admin can see it
-    saveReservation({
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      service: form.service,
-      serviceLabel: svc.label,
-      date: form.date,
-      time: form.time,
-      people: form.people,
-      hours: form.hours,
-      message: form.message,
-      payment: form.payment,
-      total,
-      status: 'pending',
-      adminNote: '',
-      discount: 0,
+    // persist to API
+    fetch('/api/reservations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+        service: form.service,
+        serviceLabel: svc.label,
+        date: form.date,
+        time: form.time,
+        people: form.people,
+        hours: form.hours,
+        message: form.message,
+        payment: form.payment,
+        total,
+        status: 'pending',
+        adminNote: '',
+        discount: 0,
+      })
     })
 
     setConfirmed(true)

@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { getReservations, updateReservation, deleteReservation, type Reservation, type ReservationStatus } from '@/lib/reservations'
-import { getServices, saveServices, generateServiceId, DEFAULT_SERVICES, type Service } from '@/lib/services'
-import { getBanner, saveBanner, DEFAULT_BANNER, type BannerSettings } from '@/lib/banner'
+import type { Reservation, ReservationStatus } from '@/lib/reservations'
+import type { Service } from '@/lib/services'
+import type { BannerSettings } from '@/lib/banner'
 import ImageCropper from '@/components/ImageCropper'
 
 const PAYMENT_LABELS: Record<string, string> = { cash:'Cash', transfer:'Bank Transfer', edinar:'E-Dinar' }
@@ -435,35 +435,99 @@ export default function AdminDashboard() {
   const [banner, setBannerState]        = useState<BannerSettings>(DEFAULT_BANNER)
 
   useEffect(() => {
-    if (localStorage.getItem('aqua_admin') !== 'true') { router.replace('/admin/login'); return }
-    setReady(true)
-    setReservations(getReservations())
-    setServices(getServices())
-    setBannerState(getBanner())
+    async function loadData() {
+      if (localStorage.getItem('aqua_admin') !== 'true') { router.replace('/admin/login'); return }
+      setReady(true)
+      
+      const [resRes, svcRes, banRes] = await Promise.all([
+        fetch('/api/reservations'),
+        fetch('/api/services'),
+        fetch('/api/banner')
+      ])
+      
+      const reservationsData = await resRes.json()
+      const servicesData = await svcRes.json()
+      const bannerData = await banRes.json()
+      
+      setReservations(reservationsData)
+      setServices(servicesData)
+      setBannerState(bannerData)
+    }
+    loadData()
   }, [router])
 
-  const refresh = useCallback(() => { setReservations(getReservations()); setServices(getServices()) }, [])
-  function handleUpdate(u: Reservation) { updateReservation(u); refresh(); setSelected(u) }
-  function handleDelete(id: string) { deleteReservation(id); refresh(); setSelected(null) }
-  function handleLogout() { localStorage.removeItem('aqua_admin'); router.push('/admin/login') }
-
-  function handleSaveBanner(b: BannerSettings) {
-    saveBanner(b); setBannerState(b); setBannerModal(false)
+  async function refreshReservations() {
+    const res = await fetch('/api/reservations')
+    setReservations(await res.json())
+  }
+  
+  async function refreshServices() {
+    const res = await fetch('/api/services')
+    setServices(await res.json())
   }
 
-  function handleSaveService(svc: Service) {
-    const all = getServices()
+  async function handleUpdate(u: Reservation) {
+    await fetch('/api/reservations', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(u)
+    })
+    await refreshReservations()
+    setSelected(u)
+  }
+  
+  async function handleDelete(id: string) {
+    await fetch(`/api/reservations?id=${id}`, { method: 'DELETE' })
+    await refreshReservations()
+    setSelected(null)
+  }
+  
+  async function handleLogout() { 
+    localStorage.removeItem('aqua_admin')
+    router.push('/admin/login') 
+  }
+  
+  async function handleSaveBanner(b: BannerSettings) {
+    await fetch('/api/banner', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(b)
+    })
+    setBannerState(b)
+    setBannerModal(false)
+  }
+  
+  async function handleSaveService(svc: Service) {
+    const all = [...services]
     const idx = all.findIndex(s => s.id === svc.id)
     if (idx >= 0) all[idx] = svc; else all.push(svc)
-    saveServices(all); setServices([...all]); setSvcModal(false)
+    await fetch('/api/services', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(all)
+    })
+    setServices(all)
+    setSvcModal(false)
   }
-  function handleDeleteService(id: string) {
-    const all = getServices().filter(s => s.id !== id)
-    saveServices(all); setServices(all)
+  
+  async function handleDeleteService(id: string) {
+    const all = services.filter(s => s.id !== id)
+    await fetch('/api/services', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(all)
+    })
+    setServices(all)
   }
-  function handleToggleVisible(id: string) {
-    const all = getServices().map(s => s.id===id ? {...s, visible:!s.visible} : s)
-    saveServices(all); setServices(all)
+  
+  async function handleToggleVisible(id: string) {
+    const all = services.map(s => s.id===id ? {...s, visible:!s.visible} : s)
+    await fetch('/api/services', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(all)
+    })
+    setServices(all)
   }
 
   if (!ready) return null
