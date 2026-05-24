@@ -433,6 +433,7 @@ export default function AdminDashboard() {
   const [svcModal, setSvcModal]         = useState<Partial<Service>|null|false>(false)
   const [bannerModal, setBannerModal]   = useState(false)
   const [banner, setBannerState]        = useState<BannerSettings>(DEFAULT_BANNER)
+  const [mobileMenu, setMobileMenu]     = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -568,10 +569,10 @@ export default function AdminDashboard() {
         .card-anim { animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both }
       `}</style>
 
-      <div className="flex min-h-screen bg-slate-50" style={{ fontFamily:'Arial,sans-serif' }}>
+<div className="flex min-h-screen bg-slate-50" style={{ fontFamily:'Arial,sans-serif' }}>
 
-        {/* ── SIDEBAR ── */}
-        <aside className="w-56 flex-shrink-0 flex flex-col sticky top-0 h-screen bg-white border-r border-slate-100 shadow-sm">
+        {/* ── SIDEBAR (hidden on mobile) ── */}
+        <aside className="hidden md:flex w-56 flex-shrink-0 flex flex-col sticky top-0 h-screen bg-white border-r border-slate-100 shadow-sm">
           <div className="px-5 py-5 border-b border-slate-100">
             <img src="/logo.png" alt="AQUA RIDE" className="h-10 w-auto" style={{ mixBlendMode:'multiply' }}
               onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none'}} />
@@ -603,7 +604,15 @@ export default function AdminDashboard() {
 
         {/* ── MAIN ── */}
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between sticky top-0 z-30">
+          {/* Mobile header with menu button */}
+          <div className="md:hidden bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between">
+            <h1 className="text-lg font-bold text-slate-800 capitalize">{tab}</h1>
+            <button onClick={()=>setMobileMenu(true)} className="p-2 rounded-lg hover:bg-slate-50">
+              <span className="text-xl">☰</span>
+            </button>
+          </div>
+
+          <header className="hidden md:block bg-white border-b border-slate-100 px-8 py-4 flex items-center justify-between sticky top-0 z-30">
             <div>
               <h1 className="text-xl font-black text-slate-800 capitalize">{tab}</h1>
               <p className="text-slate-400 text-xs">Welcome back, Admin 👋</p>
@@ -618,7 +627,22 @@ export default function AdminDashboard() {
             </div>
           </header>
 
-          <div className="flex-1 p-8 overflow-auto">
+          {/* Mobile menu overlay */}
+          {mobileMenu && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden">
+              <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-5 flex flex-col">
+                <button onClick={()=>setMobileMenu(false)} className="self-end text-xl text-slate-400 hover:text-slate-600">×</button>
+                <nav className="mt-6 flex flex-col gap-2">
+                  {NAV.map(n=>(
+                    <button key={n.id} onClick={()=>{setTab(n.id);setMobileMenu(false)}}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-sm font-semibold ${tab===n.id?'bg-cyan-500 text-white':'text-slate-600 hover:bg-slate-50'}`}>
+                      <span className="mr-2">{n.icon}</span>{n.label}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          )}
 
             {/* ══ DASHBOARD TAB ══ */}
             {tab === 'dashboard' && (
