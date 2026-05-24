@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  background: #f7f4ef;
+  color: #062B37;
+}
+
+.glass {
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,.2);
+}
+
+@keyframes navSlideDown {
+  from { opacity:0; transform:translateY(-100%) }
+  to   { opacity:1; transform:translateY(0) }
+}
+@keyframes linkFadeIn {
+  from { opacity:0; transform:translateY(-8px) }
+  to   { opacity:1; transform:translateY(0) }
+}
+@keyframes mobileMenuIn {
+  from { opacity:0; transform:translateY(-12px) scale(.97) }
+  to   { opacity:1; transform:translateY(0) scale(1) }
+}
+
+.nav-enter  { animation: navSlideDown .5s cubic-bezier(.22,1,.36,1) both }
+.link-item  { animation: linkFadeIn .4s cubic-bezier(.22,1,.36,1) both }
+.mobile-menu { animation: mobileMenuIn .25s ease both }
+
+.nav-link {
+  position: relative;
+  padding-bottom: 4px;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  width: 0; height: 2px;
+  background: #06b6d4;
+  border-radius: 99px;
+  transition: width .3s ease, left .3s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+  left: 0;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(40px) }
+  to   { opacity:1; transform:translateY(0) }
+}
+@keyframes fadeLeft {
+  from { opacity:0; transform:translateX(40px) }
+  to   { opacity:1; transform:translateX(0) }
+}
+@keyframes fadeRight {
+  from { opacity:0; transform:translateX(-40px) }
+  to   { opacity:1; transform:translateX(0) }
+}
+.anim-up    { animation: fadeUp    .8s cubic-bezier(.22,1,.36,1) both }
+.anim-left  { animation: fadeLeft  .8s cubic-bezier(.22,1,.36,1) both }
+.anim-right { animation: fadeRight .8s cubic-bezier(.22,1,.36,1) both }
